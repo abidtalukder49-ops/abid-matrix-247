@@ -7,8 +7,7 @@ const https = require('https');
 // ============================================================
 const app = express();
 const PORT = process.env.PORT || 10000;
-// আপনার নতুন ও ইউনিক রেন্ডার ইউআরএল নিচে সেট করা হলো
-const RENDER_LIVE_URL = 'https://onrender.com';
+const RENDER_LIVE_URL = 'https://abid-matrix-system.onrender.com';
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -25,9 +24,9 @@ app.listen(PORT, '0.0.0.0', () => {
   // ⚡ INTERNAL TRAFFIC PULSE: রেন্ডারকে ২৪/৭ সচল রাখার ২ মিনিটের মেকানিজম
   setInterval(() => {
     https.get(RENDER_LIVE_URL, (res) => {
-      console.log(`[PULSE]: Data traffic verified. Code: ${res.statusCode}`);
+      // রেন্ডারকে সচল রাখার লাইভ পালস
     }).on('error', (err) => {
-      console.log('[PULSE ERROR]: Traffic sync dropped momentarily.');
+      // সাইলেন্ট ড্রপ হ্যান্ডলার
     });
   }, 120000);
 });
@@ -35,7 +34,7 @@ app.listen(PORT, '0.0.0.0', () => {
 // ============================================================
 // ২. ADVANCED ERROR FILTER & PACKET DROP PROTECTION
 // ============================================================
-const criticalSilenceList = ['ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'PartialReadError', 'EOF', 'handshake', 'undefined', 'TCP', 'version', 'recipe', 'slot'];
+const criticalSilenceList = ['ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'PartialReadError', 'EOF', 'handshake', 'undefined', 'TCP', 'version', 'recipe', 'slot', 'status response', 'socketClosed'];
 const nativeConsoleError = console.error;
 
 console.error = function (...args) {
@@ -52,14 +51,16 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // ============================================================
-// ৩. 26.3 (214) PROTOCOL HANDSHAKE MATRIX
+// ৩. GEYSER/PAPERMC PROXIED PROTOCOL HANDSHAKE MATRIX
 // ============================================================
 const targetServerSettings = {
   host: 'powerairgaming.aternos.me',
   port: 46469,
-  version: false, // Geyser/ViaVersion এর সাথে অটো-অ্যাডাপ্ট মোড
-  checkTimeoutInterval: 120000,
-  physicsEnabled: true // Anti-AFK বাইপাসের জন্য ফিজিক্স ইঞ্জিন অন থাকবে
+  version: '1.21.3', // প্রক্সি সকেট ড্রপ ফিক্স করার জন্য হার্ডকোডেড লেটেস্ট সংস্করণ লক
+  fakeHost: 'powerairgaming.aternos.me', // এটার্নোস ফায়ারওয়াল বাইপাস হেডার
+  skipValidation: true, // প্রাক-লগইন হ্যান্ডশেক ভ্যালিডেশন স্কিপ
+  checkTimeoutInterval: 60000, // ড্রপ ট্র্যাকিং ইন্টারভাল
+  physicsEnabled: true 
 };
 
 // ============================================================
@@ -67,16 +68,19 @@ const targetServerSettings = {
 // ============================================================
 function launchAbidOperator(botUsername, queueDelay) {
   setTimeout(() => {
-    console.log(`[GRID]: Launching Special Operator ${botUsername} into the PaperMC stream...`);
+    console.log(`[GRID]: Deploying Heroic Operator ${botUsername} into the PaperMC grid...`);
     
     let botInstance;
     try {
       botInstance = mineflayer.createBot({
         ...targetServerSettings,
-        username: botUsername
+        username: botUsername,
+        // সকেট ক্লোজ প্রটেকশন মেকানিজম
+        keepAlive: true,
+        hideErrors: true
       });
     } catch (e) {
-      setTimeout(() => launchAbidOperator(botUsername, 0), 40000);
+      setTimeout(() => launchAbidOperator(botUsername, 0), 30000);
       return;
     }
 
@@ -87,7 +91,7 @@ function launchAbidOperator(botUsername, queueDelay) {
     });
 
     botInstance.on('spawn', () => {
-      console.log(`✨ [HEROIC SUCCESS]: ${botUsername} has successfully breached the 26.3 Grid!`);
+      console.log(`✨ [HEROIC SUCCESS]: ${botUsername} has permanently hijacked the 26.3 Grid Matrix!`);
       if (dynamicActionLoop) clearInterval(dynamicActionLoop);
 
       // 🧠 HUMAN MIMICRY BYPASS (ANTI-AFK AI OVERRIDE)
@@ -96,10 +100,10 @@ function launchAbidOperator(botUsername, queueDelay) {
 
         // অ্যাকশন ১: মানুষের মতো ঘাড় ঘুরানো
         const yaw = (Math.random() * Math.PI * 2).toFixed(2);
-        const pitch = ((Math.random() - 0.5) * 0.5).toFixed(2);
+        const pitch = ((Math.random() - 0.5) * 0.4).toFixed(2);
         botInstance.look(yaw, pitch);
 
-        // অ্যাকশন ২: বাউন্ডারি সেফ র্যান্ডম ওয়াকিং (নড়াচড়া)
+        // অ্যাকশন ২: সেফ বাউন্ডারি র্যান্ডম ওয়াকিং
         const activeDirections = ['forward', 'back', 'left', 'right'];
         const chosenDirection = activeDirections[Math.floor(Math.random() * activeDirections.length)];
         
@@ -107,10 +111,10 @@ function launchAbidOperator(botUsername, queueDelay) {
           botInstance.setControlState(chosenDirection, true);
           setTimeout(() => { 
             if (botInstance.setControlState) botInstance.setControlState(chosenDirection, false); 
-          }, 400);
+          }, 450);
         }
 
-        // অ্যাকশন ৩: মাঝে মাঝে লাফ দেওয়া
+        // অ্যাকশন ৩: এটার্নোসের এআই ডিটেক্টর ড্রপ করতে র্যান্ডম জাম্প
         if (Math.random() > 0.5 && botInstance.setControlState) {
           botInstance.setControlState('jump', true);
           setTimeout(() => { if (botInstance.setControlState) botInstance.setControlState('jump', false); }, 250);
@@ -118,38 +122,42 @@ function launchAbidOperator(botUsername, queueDelay) {
 
         // অ্যাকশন ৪: চ্যাট লগ ইনজেকশন
         const safetyPhrases = [
-          "Secure Protocol: Online", 
-          "Abid Heroic Bot: Active", 
-          "Matrix Engine Running Flawlessly."
+          "Secure Node: Active", 
+          "Abid Matrix System: 100% Operational", 
+          "Bypass matrix loop engaged."
         ];
-        if (Math.random() > 0.88) { 
+        if (Math.random() > 0.92) { 
           botInstance.chat(safetyPhrases[Math.floor(Math.random() * safetyPhrases.length)]);
         }
 
-        // অ্যাকশন ৫: ইন্টারনাল প্যাকেট কনফার্মেশন পুশ
+        // অ্যাকশন ৫: ইন্টারনাল টেলিপোর্ট কনফার্মেশন প্যাকেট পুш
         if (botInstance._client) {
           botInstance._client.write('teleport_confirm', { teleportId: 1 });
         }
 
-      }, 13000); 
+      }, 14000); 
     });
 
-    // রি-কানেকশন এবং সেলফ-হিলিং মেথড
+    // রিকানেকশন ও অটো-হিলিং প্রোটোকল
     botInstance.on('end', (disconnectReason) => {
-      console.log(`⚠ [REFRESH]: ${botUsername} grid connection reset (${disconnectReason}). Recovering in 45s...`);
+      console.log(`⚠ [REFRESH]: ${botUsername} connection cycle refreshed (${disconnectReason}). Restoring grid in 35s...`);
       if (dynamicActionLoop) clearInterval(dynamicActionLoop);
       
       botInstance.removeAllListeners();
-      setTimeout(() => launchAbidOperator(botUsername, 0), 45000);
+      // ৩৫ সেকেন্ডের সেফ ডিলে দিয়ে পুনরায় রিকানেক্ট
+      setTimeout(() => launchAbidOperator(botUsername, 0), 35000);
     });
 
-    botInstance.on('error', () => {});
+    botInstance.on('error', (err) => {
+      // সকেট ড্রপ এরর হ্যান্ডলিং ইগনোরার
+    });
 
   }, queueDelay);
 }
 
 // ============================================================
-// 🚀 INITIATING DEPLOYMENT SEQUENCER (HEROIC INITIALIZATION)
+// 🚀 INITIATING DEPLOYMENT SEQUENCER (HEROIC MATRIX INITIALIZATION)
 // ============================================================
+// আইপি ওভারফ্লুড এড়াতে দুটি বটের মাঝে ৪৫ সেকেন্ডের গ্যাপ
 launchAbidOperator('ABID_MATRIX_HERO_1', 5000);
-launchAbidOperator('ABID_MATRIX_HERO_2', 50000);
+launchAbidOperator('ABID_MATRIX_HERO_2', 45000);
