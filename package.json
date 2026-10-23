@@ -1,0 +1,13 @@
+{
+  "name": "abid-matrix-247",
+  "version": "1.0.0",
+  "description": "Absolute God-Mode 24/7 Bypasser for PaperMC 26.3",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.19.2",
+    "mineflayer": "^4.24.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
